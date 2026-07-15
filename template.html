@@ -350,7 +350,7 @@ canvas.routemap { width: 92px; height: 46px; display: block; }
         <div id="coachList"></div>
       </div>
       <div class="panel" id="thisWeekPanel" style="margin-bottom:16px; border-color:#ffd8c7;">
-        <div class="panel-head"><h2 id="twTitle">This week</h2><button class="addbtn" id="twAdd">+ add session</button><button class="addbtn wkedit" id="twEdit">✎ Edit week</button></div>
+        <div class="panel-head"><h2 id="twTitle">This week</h2><button class="addbtn" id="twAdd">+ add session</button><button class="addbtn wkedit" id="twEdit">✎ Edit week</button><button class="addbtn" id="exportPhone" title="Export your plan adaptations to bake into the phone version">⤓ Export for phone</button></div>
         <div id="twWeather" class="twweather"></div>
         <div class="tablewrap" style="max-height:none"><table id="twTable"><tbody></tbody></table></div>
         <div id="twSugg"></div>
@@ -507,6 +507,8 @@ let PLAN_MATCH = {};     // { planIndex: activityId } — manually linked run (t
 let PLAN_ADDED = [];     // [{id,w,t,d,kmin,kmax,pace,notes}] — user-added extra sessions
 let PLAN_SUGG_DISMISS = {}; // dismissed adaptive suggestions (by key)
 let CURRENT_SUGG = {};      // currently-rendered suggestions (key -> {id, over})
+// GitHub upload page for the phone/hosted snapshot repo (where plan-state.json lives)
+const REPO_UPLOAD_URL = "https://github.com/mithilansiva/running-dashboard/upload/main";
 // Holiday: no structured running 13–30 Aug 2026 (plan resumes 31 Aug)
 const HOLIDAY = { start: new Date("2026-08-13T00:00:00").getTime(), end: new Date("2026-08-30T23:59:59").getTime() };
 function inHoliday(ts) { return ts >= HOLIDAY.start && ts <= HOLIDAY.end; }
@@ -1416,6 +1418,7 @@ function renderPlan() {
     byWeek[w].forEach(s => { html += planRowHTML(s, "wkgrp", `data-wk="${w}"${collapsed ? ' style="display:none"' : ""}`); });
   });
   document.querySelector("#planTable tbody").innerHTML = html;
+  updateExportBtn(); // show the export button only when there are unsynced plan changes
   updateSub();
 }
 function typeToCat(t) { return t === "Race" ? "Race" : t; }  // plan types now map 1:1 to run cats (Easy/Long/Speed/Race)
@@ -1581,6 +1584,21 @@ async function renderWeather() {
   const rain = raining ? `, ${w.rainMm}mm rain` : "";
   const windy = w.gustKmh ? `, gusts to ${Math.round(w.gustKmh)} km/h` : "";
   el.innerHTML = `<div><b>Right now — ${place}:</b> ${w.cond ? w.cond + ", " : ""}${Math.round(w.temp)}°C (feels ${Math.round(w.feels)}°C)${rain}${windy}. <b>Kit:</b> ${kit.top}, ${kit.bottom}${kit.extras.length ? `, + ${kit.extras.join(", ")}` : ""}.</div>`;
+}
+// Plan-adaptation sync: the "Export for phone" button only shows when your current plan state
+// differs from what you last exported (tracked in localStorage "plan_state_synced").
+const PLAN_STATE_KEYS = ["run_overrides", "plan_overrides", "plan_done", "plan_match", "plan_added", "run_hrmax", "run_hrrest", "goal_time", "race_anchor"];
+function planStateCanonical() {
+  const o = {}; PLAN_STATE_KEYS.forEach(k => { const v = localStorage.getItem(k); if (v != null && v !== "{}" && v !== "[]" && v !== "") o[k] = v; });
+  return JSON.stringify(o);
+}
+function updateExportBtn() {
+  const b = document.getElementById("exportPhone"); if (!b) return;
+  if (window.SNAPSHOT) { b.style.display = "none"; return; }   // phone view never exports
+  const cur = planStateCanonical(), synced = localStorage.getItem("plan_state_synced") || "{}";
+  const hasChanges = cur !== "{}" && cur !== synced;
+  b.style.display = hasChanges ? "" : "none";
+  b.textContent = "⤓ Export for phone (changes to sync)";
 }
 // Race-day projection: extrapolate best-effort VDOT trend to race day
 function parseHMS(raw) {
@@ -1892,6 +1910,17 @@ async function load() {
     try { PLAN_MATCH = JSON.parse(localStorage.getItem("plan_match") || "{}"); } catch(e) { PLAN_MATCH = {}; }
     try { PLAN_ADDED = JSON.parse(localStorage.getItem("plan_added") || "[]"); } catch(e) { PLAN_ADDED = []; }
     try { PLAN_SUGG_DISMISS = JSON.parse(localStorage.getItem("plan_sugg_dismiss") || "{}"); } catch(e) { PLAN_SUGG_DISMISS = {}; }
+    // Snapshot: apply baked plan adaptations exported from the desktop (localStorage isn't shared across devices)
+    if (SNAP && SNAP.planState) {
+      const ps = SNAP.planState;                          // values are the raw localStorage strings
+      const obj = v => { try { return typeof v === "string" ? JSON.parse(v) : v; } catch (e) { return null; } };
+      if (ps.run_overrides) OVERRIDES = obj(ps.run_overrides) || OVERRIDES;
+      if (ps.plan_overrides) PLAN_OVERRIDES = obj(ps.plan_overrides) || PLAN_OVERRIDES;
+      if (ps.plan_done) PLAN_DONE = obj(ps.plan_done) || PLAN_DONE;
+      if (ps.plan_match) PLAN_MATCH = obj(ps.plan_match) || PLAN_MATCH;
+      if (ps.plan_added) PLAN_ADDED = obj(ps.plan_added) || PLAN_ADDED;
+      ["run_hrmax", "run_hrrest", "goal_time", "race_anchor"].forEach(k => { if (ps[k] != null) localStorage.setItem(k, ps[k]); });
+    }
     // --- time-range brush (two-handle slider mapped to days-from-first-activity) ---
     const brMin = document.getElementById("brMin"), brMax = document.getElementById("brMax"), brFill = document.getElementById("brFill");
     const brBand = document.getElementById("brBand"), brWrap = document.querySelector(".brushwrap");
@@ -1978,6 +2007,20 @@ async function load() {
     };
     raceDistEl.addEventListener("change", applyRace);
     raceTimeEl.addEventListener("change", applyRace);
+    // Export plan adaptations to a file you can bake into the phone/hosted version
+    const expBtn = document.getElementById("exportPhone");
+    if (expBtn) {
+      if (window.SNAPSHOT) { expBtn.style.display = "none"; }
+      else expBtn.addEventListener("click", () => {
+        const ps = {}; PLAN_STATE_KEYS.forEach(k => { const v = localStorage.getItem(k); if (v != null) ps[k] = v; });
+        const blob = new Blob([JSON.stringify(ps, null, 2)], { type: "application/json" });
+        const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = "plan-state.json";
+        document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+        localStorage.setItem("plan_state_synced", planStateCanonical());   // mark as synced
+        try { window.open(REPO_UPLOAD_URL, "_blank", "noopener"); } catch (e) {}  // open GitHub upload page
+        updateExportBtn();
+      });
+    }
     // H2: grade-adjusted pace toggle for the pace-trend chart
     const gapBtn = document.getElementById("paceGapBtn");
     const setGapBtn = () => { gapBtn.textContent = PACE_GAP ? "Grade-adjusted" : "Raw pace"; gapBtn.classList.toggle("on", PACE_GAP); };
