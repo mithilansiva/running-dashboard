@@ -1401,9 +1401,10 @@ function renderPlan() {
     document.querySelector("#twTable tbody").innerHTML = byWeek[focusWeek].map(s => planRowHTML(s)).join("");
     const twa = document.getElementById("twAdd"); twa.dataset.w = focusWeek; twa.style.display = EDIT_WEEKS.has(focusWeek) ? "" : "none";
     const twe = document.getElementById("twEdit"); twe.dataset.w = focusWeek; twe.textContent = EDIT_WEEKS.has(focusWeek) ? "Done editing" : "✎ Edit week";
-    renderSuggestions(focusWeek, byWeek[focusWeek]);
+    if (window.SNAPSHOT) { const ts = document.getElementById("twSugg"); if (ts) ts.innerHTML = ""; } // no adaptive suggestions on the read-only phone view
+    else renderSuggestions(focusWeek, byWeek[focusWeek]);
     document.getElementById("thisWeekPanel").style.display = "";
-    renderWeather(); // live long-run-day forecast + kit
+    renderWeather(); // current conditions + kit
   } else { document.getElementById("thisWeekPanel").style.display = "none"; }
 
   // full plan table grouped by week (click a week header to collapse/expand)
@@ -1572,18 +1573,40 @@ function kitFor(feels, raining, gustKmh) {
   if (feels >= 22) extras.push("cap + take fluid");
   return { top, bottom, extras };
 }
-async function renderWeather() {
-  const el = document.getElementById("twWeather"); if (!el) return;
-  el.innerHTML = `<div>Checking current conditions…</div>`;
-  const text = window.SNAPSHOT ? WX_SNAPSHOT : await fetchCurrentWx(deviceCity());
-  const w = text ? parseCurrentWx(text) : null;
-  if (!w || w.feels == null) { el.innerHTML = window.SNAPSHOT ? "" : `<div>Current weather unavailable right now.</div>`; return; }
+const WMO = { 0: "Clear sky", 1: "Mainly clear", 2: "Partly cloudy", 3: "Overcast", 45: "Fog", 48: "Rime fog",
+  51: "Light drizzle", 53: "Drizzle", 55: "Heavy drizzle", 61: "Light rain", 63: "Rain", 65: "Heavy rain",
+  71: "Light snow", 73: "Snow", 75: "Heavy snow", 80: "Rain showers", 81: "Rain showers", 82: "Violent showers",
+  95: "Thunderstorm", 96: "Thunderstorm + hail", 99: "Thunderstorm + hail" };
+function paintWeather(el, w, place) {
   const raining = w.rainMm >= 0.1;
   const kit = kitFor(w.feels, raining, w.gustKmh);
-  const place = w.place ? w.place.split(",")[0] : city;
   const rain = raining ? `, ${w.rainMm}mm rain` : "";
   const windy = w.gustKmh ? `, gusts to ${Math.round(w.gustKmh)} km/h` : "";
-  el.innerHTML = `<div><b>Right now — ${place}:</b> ${w.cond ? w.cond + ", " : ""}${Math.round(w.temp)}°C (feels ${Math.round(w.feels)}°C)${rain}${windy}. <b>Kit:</b> ${kit.top}, ${kit.bottom}${kit.extras.length ? `, + ${kit.extras.join(", ")}` : ""}.</div>`;
+  el.innerHTML = `<div><b>Right now${place ? " — " + place : ""}:</b> ${w.cond ? w.cond + ", " : ""}${Math.round(w.temp)}°C (feels ${Math.round(w.feels)}°C)${rain}${windy}. <b>Kit:</b> ${kit.top}, ${kit.bottom}${kit.extras.length ? `, + ${kit.extras.join(", ")}` : ""}.</div>`;
+}
+// Hosted/phone page: fetch live conditions for the device's actual GPS location (falls back to baked)
+function renderWeatherSnapshot(el) {
+  const fallback = () => { const w = WX_SNAPSHOT ? parseCurrentWx(WX_SNAPSHOT) : null; if (w && w.feels != null) paintWeather(el, w, (w.place || "").split(",")[0]); else el.innerHTML = ""; };
+  if (!navigator.geolocation) return fallback();
+  navigator.geolocation.getCurrentPosition(async pos => {
+    try {
+      const { latitude: lat, longitude: lon } = pos.coords;
+      const u = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,apparent_temperature,precipitation,weather_code,wind_speed_10m,wind_gusts_10m&wind_speed_unit=kmh&timezone=auto`;
+      const c = (await (await fetch(u)).json()).current;
+      if (!c) return fallback();
+      paintWeather(el, { cond: WMO[c.weather_code] || "", temp: c.temperature_2m, feels: c.apparent_temperature,
+        windKmh: c.wind_speed_10m, gustKmh: c.wind_gusts_10m, rainMm: c.precipitation }, "");
+    } catch (e) { fallback(); }
+  }, () => fallback(), { timeout: 8000, maximumAge: 600000 });
+}
+async function renderWeather() {
+  const el = document.getElementById("twWeather"); if (!el) return;
+  if (window.SNAPSHOT) { el.innerHTML = `<div>Getting local conditions…</div>`; return renderWeatherSnapshot(el); }
+  el.innerHTML = `<div>Checking current conditions…</div>`;
+  const text = await fetchCurrentWx(deviceCity());
+  const w = text ? parseCurrentWx(text) : null;
+  if (!w || w.feels == null) { el.innerHTML = `<div>Current weather unavailable right now.</div>`; return; }
+  paintWeather(el, w, w.place ? w.place.split(",")[0] : deviceCity());
 }
 // Plan-adaptation sync: the "Export for phone" button only shows when your current plan state
 // differs from what you last exported (tracked in localStorage "plan_state_synced").
