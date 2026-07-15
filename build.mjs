@@ -125,7 +125,12 @@ async function fetchWeatherText(city) {
   const { be, gap, routes, routeMeta } = await fetchDetails(token, activities, DETAIL_BUDGET);
   const weatherText = await fetchWeatherText(WEATHER_CITY);
 
-  const snapshot = { activities, shoes, weatherText, be, gap, routes, routeMeta, builtAt: new Date().toISOString() };
+  // Optional: plan adaptations exported from the desktop app (plan-state.json in the repo root)
+  let planState = null;
+  try { planState = JSON.parse(await readFile("plan-state.json", "utf8")); console.log("Loaded plan-state.json"); }
+  catch { console.log("No plan-state.json — using base plan with auto-matching"); }
+
+  const snapshot = { activities, shoes, weatherText, be, gap, routes, routeMeta, planState, builtAt: new Date().toISOString() };
   const json = JSON.stringify(snapshot).replace(/</g, "\\u003c"); // safe to embed in HTML
 
   let html = await readFile("template.html", "utf8");
