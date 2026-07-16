@@ -1,8 +1,8 @@
 {
   "run_overrides": "{\"18912997281\":\"Easy\",\"18806089264\":\"Easy\",\"18724754732\":\"Easy\",\"18538613703\":\"Easy\",\"18525126905\":\"Easy\",\"18153830894\":\"Easy\",\"17983693978\":\"Easy\",\"17896885891\":\"Easy\",\"17812091777\":\"Easy\",\"18525478543\":\"Race\",\"18154181130\":\"Race\"}",
-  "plan_overrides": "{\"4\":{\"t\":\"Race\",\"d\":\"Parkrun PB attempt\",\"kmin\":5,\"kmax\":6,\"pace\":\"4:30-4:30/km\",\"notes\":\"\"},\"7\":{\"t\":\"Long\",\"d\":\"16-18 km\",\"kmin\":16,\"kmax\":18,\"pace\":\"Easy-Steady\",\"notes\":\"\"},\"36\":{\"t\":\"Race\",\"d\":\"Dorney Lake HM\",\"kmin\":21,\"kmax\":22,\"pace\":\"5:35/km -> 5:20/km\",\"notes\":\"\"},\"41\":{\"t\":\"Easy\",\"d\":\"6-8 km + strides\",\"kmin\":6,\"kmax\":8,\"pace\":\"Easy\",\"notes\":\"adapted: strides\"},\"43\":{\"t\":\"Long\",\"d\":\"28-32 km (MP finish)\",\"kmin\":28,\"kmax\":32,\"pace\":\"Finish steady\",\"notes\":\"adapted: MP finish\"}}",
+  "plan_overrides": "{\"4\":{\"t\":\"Race\",\"d\":\"Parkrun PB attempt\",\"kmin\":5,\"kmax\":6,\"pace\":\"4:30-4:30/km\",\"notes\":\"\"},\"7\":{\"t\":\"Long\",\"d\":\"16-18 km\",\"kmin\":16,\"kmax\":18,\"pace\":\"Easy-Steady\",\"notes\":\"\"},\"36\":{\"t\":\"Race\",\"d\":\"Dorney Lake HM\",\"kmin\":21,\"kmax\":22,\"pace\":\"5:35/km -> 5:20/km\",\"notes\":\"\"},\"42\":{\"t\":\"Easy\",\"d\":\"8-10 km\",\"kmin\":8,\"kmax\":10,\"pace\":\"Easy\",\"notes\":\"\"},\"43\":{\"t\":\"Long\",\"d\":\"28-32 km (MP finish)\",\"kmin\":28,\"kmax\":32,\"pace\":\"Finish steady\",\"notes\":\"adapted: MP finish\"}}",
   "plan_done": "{\"4\":true,\"6\":true,\"7\":true,\"10\":true,\"18\":true}",
-  "plan_match": "{\"7\":18538032892}",
+  "plan_match": "{\"7\":18538032892,\"42\":19311816110}",
   "run_hrmax": "200",
   "run_hrrest": "52",
   "goal_time": "4:00:00"
