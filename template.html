@@ -342,7 +342,7 @@ canvas.routemap { width: 92px; height: 46px; display: block; }
       <div class="cards" id="projCards"></div>
       <div class="settings" style="margin:-6px 0 16px;"><span>Goal time <input id="projGoal" type="text" placeholder="e.g. 4:00:00" style="width:100px;text-align:left"></span></div>
       <div class="panel" style="margin-bottom:16px;">
-        <div class="panel-head"><h2>This week's readiness</h2></div>
+        <div class="panel-head"><h2>Weekly briefing</h2></div>
         <div id="readyBody"></div>
       </div>
       <div class="panel" style="margin-bottom:16px;">
@@ -499,7 +499,7 @@ async function getRoute(id) {
 }
 
 // Berlin Marathon plan (each row: [weekStartISO, type, details, kmMin, kmMax, pace, notes])
-const PLAN_RAW = [["2026-05-04","Speed","6x800 m steady + WU/CD",10,12,"6:15-6:25/km","Rest before LR"],["2026-05-04","Easy","6-8 km + strides",6,8,"Easy",""],["2026-05-04","Easy","6-8 km",6,8,"Easy",""],["2026-05-04","Long","14-16 km",14,16,"Easy-Steady",""],["2026-05-11","Speed","Tempo 5-6 km + WU/CD",10,12,"5:05-5:15/km",""],["2026-05-11","Easy","6-8 km",6,8,"Easy",""],["2026-05-11","Easy","8-10 km",8,10,"Easy",""],["2026-05-11","Long","16-18 km",16,18,"Easy-Steady",""],["2026-05-18","Long","18-20 km",18,20,"Finish steady",""],["2026-05-18","Easy","8-10 km",8,10,"Easy",""],["2026-05-18","Speed","5x1 km prog + WU/CD",12,13,"Steady→Tempo",""],["2026-05-18","Easy","6-8 km",6,8,"Easy",""],["2026-05-25","Long","14-16 km",14,16,"Easy",""],["2026-05-25","Speed","10x400 m steady + WU/CD",8,9,"Steady","Recovery week"],["2026-05-25","Easy","6-7 km",6,7,"Easy",""],["2026-05-25","Easy","6-8 km",6,8,"Easy",""],["2026-06-01","Long","20-22 km",20,22,"Easy-Steady",""],["2026-06-01","Easy","8-10 km",8,10,"Easy",""],["2026-06-01","Speed","5 km MP + WU/CD",15,16,"~6:00/km",""],["2026-06-01","Easy","6-8 km",6,8,"Easy",""],["2026-06-08","Speed","Tempo 7-8 km OR splits",12,13,"Tempo",""],["2026-06-08","Easy","6-8 km",6,8,"Easy",""],["2026-06-08","Easy","8-10 km",8,10,"Easy",""],["2026-06-08","Long","22-24 km",22,24,"Easy-Steady",""],["2026-06-15","Long","24-26 km",24,26,"Finish steady",""],["2026-06-15","Easy","8-10 km",8,10,"Easy",""],["2026-06-15","Speed","4x2 km MP + WU/CD",14,15,"~6:00/km",""],["2026-06-15","Easy","6-8 km",6,8,"Easy",""],["2026-06-22","Speed","8x400 m effort + WU/CD",8,9,"10K-HM feel","Recovery"],["2026-06-22","Easy","6-7 km",6,7,"Easy",""],["2026-06-22","Easy","6-8 km",6,8,"Easy",""],["2026-06-22","Long","18-21 km",18,21,"Easy",""],["2026-06-29","Easy","8-10 km + strides",8,10,"Easy",""],["2026-06-29","Speed","3x3 km MP + WU/CD",15,16,"~6:00/km","Fueling"],["2026-06-29","Easy","6-8 km",6,8,"Easy",""],["2026-06-29","Long","26-28 km",26,28,"Easy-Steady",""],["2026-07-06","Long","24-26 km (MP finish)",24,26,"MP finish",""],["2026-07-06","Easy","8-10 km",8,10,"Easy",""],["2026-07-06","Easy","6-8 km",6,8,"Easy",""],["2026-07-06","Speed","Tempo + strides",11,12,"Tempo",""],["2026-07-13","Speed","2x4 km MP",14,15,"~6:00/km",""],["2026-07-13","Easy","6-8 km",6,8,"Easy",""],["2026-07-13","Easy","8-10 km",8,10,"Easy",""],["2026-07-13","Long","28-32 km",28,32,"Finish steady",""],["2026-07-20","Easy","8-10 km",8,10,"Easy",""],["2026-07-20","Long","18-20 km",18,20,"Easy",""],["2026-07-20","Speed","5-6x1 km MP",12,13,"~6:00/km",""],["2026-07-20","Easy","6-8 km",6,8,"Easy",""],["2026-07-27","Easy","6-8 km",6,8,"Easy",""],["2026-07-27","Long","20-22 km",20,22,"Easy-Steady","Extend distance"],["2026-07-27","Easy","8-10 km",8,10,"Easy",""],["2026-07-27","Speed","6x1 km MP + WU/CD",13,14,"~6:00/km","Build progression"],["2026-08-03","Long","22-24 km",22,24,"Easy-Steady","Peak before break"],["2026-08-03","Easy","8-10 km",8,10,"Easy",""],["2026-08-03","Easy","6-8 km",6,8,"Easy",""],["2026-08-03","Speed","3x2 km MP + WU/CD",12,13,"~6:00/km","Controlled effort"],["2026-08-10","Speed","5x800 m steady + WU/CD",9,10,"Steady","Shortened week"],["2026-08-10","Easy","6-8 km",6,8,"Easy","Optional (pre-trip)"],["2026-08-10","Easy","6-7 km",6,7,"Easy",""],["2026-08-31","Speed","3x2 km MP OR easy",12,13,"MP/Easy","Re-entry"],["2026-08-31","Easy","6-8 km",6,8,"Easy",""],["2026-08-31","Easy","8-10 km + strides",8,10,"Easy",""],["2026-08-31","Long","16-20 km",16,20,"Easy",""],["2026-09-07","Long","26-28 km",26,28,"Easy-MP finish",""],["2026-09-07","Speed","6x800 OR 4x2 km",10,14,"HM/MP",""],["2026-09-07","Easy","6-8 km",6,8,"Easy",""],["2026-09-07","Easy","8-10 km",8,10,"Easy",""],["2026-09-14","Easy","6-8 km + strides",6,8,"Easy",""],["2026-09-14","Long","14-18 km",14,18,"Easy",""],["2026-09-14","Speed","3x2 km MP",10,11,"MP","Taper"],["2026-09-14","Easy","6-8 km",6,8,"Easy",""],["2026-09-21","Race","Berlin Marathon",42.2,42.2,"Race",""],["2026-09-21","Easy","3-5 km shakeout",3,5,"Easy",""],["2026-09-21","Easy","5-6 km",5,6,"Very easy",""],["2026-09-21","Speed","2-3x1 km MP",8,10,"MP",""],["2026-09-21","Easy","6-8 km + strides",6,8,"Easy","Race week"]];
+const PLAN_RAW = [["2026-05-04","Speed","6x800 m steady + WU/CD",10,12,"6:15-6:25/km","Rest before LR"],["2026-05-04","Easy","6-8 km + strides",6,8,"Easy",""],["2026-05-04","Easy","6-8 km",6,8,"Easy",""],["2026-05-04","Long","14-16 km",14,16,"Easy-Steady",""],["2026-05-11","Speed","Tempo 5-6 km + WU/CD",10,12,"5:05-5:15/km",""],["2026-05-11","Easy","6-8 km",6,8,"Easy",""],["2026-05-11","Easy","8-10 km",8,10,"Easy",""],["2026-05-11","Long","16-18 km",16,18,"Easy-Steady",""],["2026-05-18","Long","18-20 km",18,20,"Finish steady",""],["2026-05-18","Easy","8-10 km",8,10,"Easy",""],["2026-05-18","Speed","5x1 km prog + WU/CD",12,13,"Steady→Tempo",""],["2026-05-18","Easy","6-8 km",6,8,"Easy",""],["2026-05-25","Long","14-16 km",14,16,"Easy",""],["2026-05-25","Speed","10x400 m steady + WU/CD",8,9,"Steady","Recovery week"],["2026-05-25","Easy","6-7 km",6,7,"Easy",""],["2026-05-25","Easy","6-8 km",6,8,"Easy",""],["2026-06-01","Long","20-22 km",20,22,"Easy-Steady",""],["2026-06-01","Easy","8-10 km",8,10,"Easy",""],["2026-06-01","Speed","5 km MP + WU/CD",15,16,"~6:00/km",""],["2026-06-01","Easy","6-8 km",6,8,"Easy",""],["2026-06-08","Speed","Tempo 7-8 km OR splits",12,13,"Tempo",""],["2026-06-08","Easy","6-8 km",6,8,"Easy",""],["2026-06-08","Easy","8-10 km",8,10,"Easy",""],["2026-06-08","Long","22-24 km",22,24,"Easy-Steady",""],["2026-06-15","Long","24-26 km",24,26,"Finish steady",""],["2026-06-15","Easy","8-10 km",8,10,"Easy",""],["2026-06-15","Speed","4x2 km MP + WU/CD",14,15,"~6:00/km",""],["2026-06-15","Easy","6-8 km",6,8,"Easy",""],["2026-06-22","Speed","8x400 m effort + WU/CD",8,9,"10K-HM feel","Recovery"],["2026-06-22","Easy","6-7 km",6,7,"Easy",""],["2026-06-22","Easy","6-8 km",6,8,"Easy",""],["2026-06-22","Long","18-21 km",18,21,"Easy",""],["2026-06-29","Easy","8-10 km + strides",8,10,"Easy",""],["2026-06-29","Speed","3x3 km MP + WU/CD",15,16,"~6:00/km","Fueling"],["2026-06-29","Easy","6-8 km",6,8,"Easy",""],["2026-06-29","Long","26-28 km",26,28,"Easy-Steady",""],["2026-07-06","Long","24-26 km (MP finish)",24,26,"MP finish",""],["2026-07-06","Easy","8-10 km",8,10,"Easy",""],["2026-07-06","Easy","6-8 km",6,8,"Easy",""],["2026-07-06","Speed","Tempo + strides",11,12,"Tempo",""],["2026-07-13","Speed","2x4 km MP",14,15,"~6:00/km",""],["2026-07-13","Easy","6-8 km",6,8,"Easy",""],["2026-07-13","Easy","8-10 km",8,10,"Easy",""],["2026-07-13","Long","28-32 km",28,32,"Finish steady",""],["2026-07-20","Easy","8-10 km",8,10,"Easy",""],["2026-07-20","Long","18-20 km",18,20,"Easy","Hold steady — single long, no double (niggle protection)"],["2026-07-20","Speed","5-6x1 km MP",12,13,"~6:00/km","Ease pace if the tightness talks back"],["2026-07-20","Easy","6-8 km",6,8,"Easy",""],["2026-07-27","Long","20 km — double #1",20,20,"Easy-Steady","PEAK (conditional): only after 2–3 pain-free easy runs"],["2026-07-27","Long","20 km — double #2",20,20,"Easy-Steady","Second long on tired legs — peak stimulus; else push the double out"],["2026-07-27","Speed","6x1 km MP + WU/CD",13,14,"~6:00/km",""],["2026-07-27","Easy","6-8 km",6,8,"Easy",""],["2026-08-03","Long","26-28 km",26,28,"Easy-Steady","Second big long / absorb week"],["2026-08-03","Easy","8-10 km",8,10,"Easy",""],["2026-08-03","Easy","6-8 km",6,8,"Easy",""],["2026-08-03","Speed","3x2 km MP + WU/CD",12,13,"~6:00/km","Controlled effort"],["2026-08-10","Speed","5x800 m steady + WU/CD",9,10,"Steady","Shortened week"],["2026-08-10","Easy","6-8 km",6,8,"Easy","Optional (pre-trip)"],["2026-08-10","Easy","6-7 km",6,7,"Easy",""],["2026-08-31","Speed","3x2 km MP OR easy",12,13,"MP/Easy","Re-entry"],["2026-08-31","Easy","6-8 km",6,8,"Easy",""],["2026-08-31","Easy","8-10 km + strides",8,10,"Easy",""],["2026-08-31","Long","16-20 km",16,20,"Easy",""],["2026-09-07","Long","26-28 km",26,28,"Easy-MP finish",""],["2026-09-07","Speed","6x800 OR 4x2 km",10,14,"HM/MP",""],["2026-09-07","Easy","6-8 km",6,8,"Easy",""],["2026-09-07","Easy","8-10 km",8,10,"Easy",""],["2026-09-14","Easy","6-8 km + strides",6,8,"Easy",""],["2026-09-14","Long","14-18 km",14,18,"Easy",""],["2026-09-14","Speed","3x2 km MP",10,11,"MP","Taper"],["2026-09-14","Easy","6-8 km",6,8,"Easy",""],["2026-09-21","Race","Berlin Marathon",42.2,42.2,"Race",""],["2026-09-21","Easy","3-5 km shakeout",3,5,"Easy",""],["2026-09-21","Easy","5-6 km",5,6,"Very easy",""],["2026-09-21","Speed","2-3x1 km MP",8,10,"MP",""],["2026-09-21","Easy","6-8 km + strides",6,8,"Easy","Race week"]];
 const RACE_DATE = "2026-09-27";
 let PLAN_OVERRIDES = {}; // { planIndex: {t,d,kmin,kmax,pace,notes} } — manual edits to sessions
 let PLAN_DONE = {};      // { planIndex: true } — manually ticked-off sessions (override auto-match)
@@ -1489,9 +1489,11 @@ function computeReadiness() {
 }
 function renderReadiness(agg, byWeek, curWeek, now) {
   const r = computeReadiness();
-  let extra = "";
+  const lines = [];
+  // Greeting + countdown
+  const weeksToGo = Math.max(0, Math.ceil((new Date(RACE_DATE).getTime() - now) / (7 * 86400000)));
+  lines.push(`<p><b>Good morning.</b> ${weeksToGo} week${weeksToGo === 1 ? "" : "s"} to Berlin.</p>`);
   if (agg && agg.length) {
-    const lines = [];
     // Last completed plan week — a warm recap
     const pastAggs = agg.filter(a => a.past && a.total > 0);
     const prev = pastAggs.length ? pastAggs[pastAggs.length - 1] : null;
@@ -1508,20 +1510,26 @@ function renderReadiness(agg, byWeek, curWeek, now) {
     const focus = curWeek || ((agg.find(a => !a.past && a.total > 0) || {}).w);
     if (focus && byWeek[focus]) {
       const ss = byWeek[focus], pend = ss.filter(x => x.status !== "done" && x.status !== "type").length;
-      const longS = ss.find(x => x.t === "Long"), speedS = ss.find(x => x.t === "Speed"), raceS = ss.find(x => x.t === "Race");
+      const longs = ss.filter(x => x.t === "Long"), speedS = ss.find(x => x.t === "Speed"), raceS = ss.find(x => x.t === "Race");
       const bits = [];
       if (raceS) bits.push(`<b>${raceS.d}</b>`);
-      if (longS) bits.push(`a <b>${longS.kmin}–${longS.kmax} km long run</b>`);
+      if (longs.length > 1) bits.push(`a <b>double long-run weekend (~${longs.reduce((t, l) => t + l.kmax, 0)} km)</b>`);
+      else if (longs.length === 1) bits.push(`a <b>${longs[0].kmin}–${longs[0].kmax} km long run</b>`);
       if (speedS) bits.push(`a <b>speed session</b> (${speedS.d})`);
       const focusTxt = bits.length ? bits.join(" and ") : `${ss.length} sessions`;
       const verb = { "Back off": "keep the hard efforts controlled and protect your recovery days", "Room to push": "attack the quality session and long run with intent", "Hold steady": "execute as planned and keep the easy days genuinely easy", "Build steadily": "stay consistent — most of it easy", "Ease back in": "rebuild gently, nothing forced", "On holiday": "just enjoy the break" }[r.v] || "follow the plan";
       const label = focus === curWeek ? "This week" : "Coming up";
       lines.push(`<p><b>${label} —</b> the priorities are ${focusTxt}${pend ? ` (${pend} still to do)` : ""}. Goal: ${verb}.</p>`);
+      // Surface a notable plan caveat for the week (e.g. the conditional peak / niggle note)
+      const note = ss.map(x => x.notes).find(n => n && /conditional|niggle|peak|ease|physio|pain-free/i.test(n));
+      if (note) lines.push(`<p><b>Note —</b> ${note}.</p>`);
     }
-    if (lines.length) extra = `<div class="rsum">${lines.join("")}</div>`;
+    // One headline coaching flag
+    try { const ci = computeCoaching(); const top = ci.find(x => x.lvl === "bad") || ci.find(x => x.lvl === "warn"); if (top) lines.push(`<p><b>Watch —</b> ${top.t}</p>`); } catch (e) {}
   }
   document.getElementById("readyBody").innerHTML =
-    `<div class="verdict"><div class="dot" style="background:${r.c}">${r.icon}</div><div><div class="rv" style="color:${r.c}">${r.v}</div><div class="rr">${r.r}</div></div></div>` + extra;
+    `<div class="verdict"><div class="dot" style="background:${r.c}">${r.icon}</div><div><div class="rv" style="color:${r.c}">${r.v}</div><div class="rr">${r.r}</div></div></div>` +
+    `<div class="rsum">${lines.join("")}</div>`;
 }
 // --- Current weather (feeds the This-week panel) --------------------------------------------
 let WX_CACHE = {}; // city -> { ts, text }
@@ -1856,7 +1864,7 @@ async function fetchSince(sinceTs) {
 }
 // The Cowork bridge (window.cowork.callMcpTool) may not exist the instant the script runs.
 // Poll for it before making any tool calls so we don't crash with "reading 'callMcpTool'".
-function waitForCowork(timeoutMs = 15000) {
+function waitForCowork(timeoutMs = 40000) {
   return new Promise((resolve, reject) => {
     if (window.cowork && typeof window.cowork.callMcpTool === "function") return resolve();
     const t0 = Date.now();
@@ -2229,7 +2237,9 @@ async function load() {
       try { const pr = await window.cowork.callMcpTool("mcp__strava__get_athlete_profile", {}); const prof = parseOne(pr); renderShoes(prof && prof.shoes); } catch (e) {}
     }
   } catch (e) {
-    document.getElementById("state").innerHTML = '<span class="err">Failed to load: ' + (e.message || e) + '</span>';
+    document.getElementById("state").innerHTML = '<span class="err">Failed to load: ' + (e.message || e) + '</span>' +
+      '<br><button id="retryBtn2" class="btn-primary" style="margin-top:12px">Retry</button>';
+    const rb = document.getElementById("retryBtn2"); if (rb) rb.onclick = () => { document.getElementById("state").textContent = "Loading…"; load(); };
   }
 }
 // Safety net: force all charts to re-fit when the window/frame is resized
